@@ -1,7 +1,7 @@
 from losses.loss import Loss
 import numpy as np
 import numpy.typing as npt
-from activations.activation import Activation
+from activations import Activation
 
 
 class CrossEntropy(Loss):

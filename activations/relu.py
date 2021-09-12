@@ -1,4 +1,4 @@
-from activations.activation import Activation
+from activations import Activation
 import numpy.typing as npt
 
 
