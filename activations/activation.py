@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 import numpy.typing as npt
-from typing import Any
 
 
 class Activation(ABC):

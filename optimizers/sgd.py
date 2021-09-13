@@ -1,6 +1,7 @@
 
 from optimizers.optimizer import Optimizer
 import numpy.typing as npt
+import numpy as np
 
 
 class SGD(Optimizer):
@@ -10,3 +11,4 @@ class SGD(Optimizer):
     def apply_gradients(self, gradients: npt.ArrayLike, variables: npt.ArrayLike):
         variables = [w - (self.lr) * gw
                      for w, gw in zip(variables, gradients)]
+        return np.array(variables)

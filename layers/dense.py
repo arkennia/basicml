@@ -44,7 +44,9 @@ class Dense(Layer):
         # a = np.dot(self.weights, inputs) + self.biases
         if self.activation is not None:
             a = np.matmul(self.weights, inputs)
-            b = np.repeat(self.biases[:, np.newaxis], 32, axis=1)
+            b = self.biases
+            if a.ndim > 1:
+                b = np.repeat(b[:, np.newaxis], a.shape[-1], axis=1)
             a = np.add(a, b)
             z = a  # pre-activation function output
             a = self.activation(a)
@@ -64,7 +66,15 @@ class Dense(Layer):
         return self.activation
 
     def _set_weights(self, weights: npt.ArrayLike):
-        self.weights = weights
+        if self.weights.shape == weights.shape:
+            self.weights = weights
+        else:
+            raise ValueError(
+                "Dense: Tried to set weights with different dimensions.")
 
     def _set_biases(self, biases: npt.ArrayLike):
-        self.biases = biases
+        if self.biases.shape == biases.shape:
+            self.biases = biases
+        else:
+            raise ValueError(
+                "Dense: Tried to set biases with different dimensions.")
