@@ -1,3 +1,5 @@
+from typing import Tuple, Union
+import activations
 from layers import Layer
 from activations import Activation
 import numpy.typing as npt
@@ -18,12 +20,13 @@ class Dense(Layer):
         input_shape: a tuple of the dimensions.
         """
         self.input_shape = input_shape
-        self.output_shape = (self.units, input_shape[-1])
-        self.weights = np.random.randn(self.output_shape)
+        self.output_shape = (self.units, input_shape[0])
+        self.weights = np.random.randn(
+            self.output_shape[0], self.output_shape[1])
         self.biases = np.random.randn(self.units)
         self.__built = True
 
-    def call(self, inputs) -> npt.ArrayLike:
+    def __call__(self, inputs) -> Tuple[npt.ArrayLike, npt.ArrayLike]:
         """
         Do a feedforward pass of the layer.
 
@@ -38,7 +41,30 @@ class Dense(Layer):
         """
         if not self.__built:
             self.build(inputs.shape)
-        a = np.dot(self.weights, inputs) + self.biases
+        # a = np.dot(self.weights, inputs) + self.biases
         if self.activation is not None:
+            a = np.matmul(self.weights, inputs)
+            b = np.repeat(self.biases[:, np.newaxis], 32, axis=1)
+            a = np.add(a, b)
+            z = a  # pre-activation function output
             a = self.activation(a)
-        return a
+        return a, z
+
+    def get_biases(self) -> npt.ArrayLike:
+        return self.biases
+
+    def get_weights(self) -> npt.ArrayLike:
+        return self.weights
+
+    def get_output_shape(self) -> Tuple:
+        """Get the output shape of the layer."""
+        return self.output_shape
+
+    def get_activation(self) -> Union[activations.Activation, None]:
+        return self.activation
+
+    def _set_weights(self, weights: npt.ArrayLike):
+        self.weights = weights
+
+    def _set_biases(self, biases: npt.ArrayLike):
+        self.biases = biases

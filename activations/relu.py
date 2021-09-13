@@ -3,7 +3,16 @@ import numpy.typing as npt
 
 
 class ReLU(Activation):
-    def call(self, z: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, z: npt.ArrayLike) -> npt.ArrayLike:
+        """
+        Compute the activation of the function on z.
+
+        Parameters:
+        z: dot(weights, inputs) + bias
+
+        Return:
+        The activation output.
+        """
         return self.apply(z)
 
     def prime(self, z: npt.ArrayLike) -> npt.ArrayLike:

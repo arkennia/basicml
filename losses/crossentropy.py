@@ -11,7 +11,17 @@ class CrossEntropy(Loss):
     def __init__(self, apply_softmax=False):
         self.apply_softmax = True
 
-    def call(self, y_pred: npt.ArrayLike, y_true: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, y_pred: npt.ArrayLike, y_true: npt.ArrayLike) -> npt.ArrayLike:
+        """
+        Output the loss or cost calculated using y_pred and y_true.
+
+        Parameters:
+        y_pred: The predicted output of a layer.
+        y_true: The True output it should have given.
+
+        Return:
+        The loss of this particular training example.
+        """
         if self.apply_softmax:
             exps = np.exp(y_pred)
             y_pred = exps / exps.sum()

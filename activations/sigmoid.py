@@ -4,7 +4,16 @@ import numpy.typing as npt
 
 
 class Sigmoid(Activation):
-    def call(self, z: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, z: npt.ArrayLike) -> npt.ArrayLike:
+        """
+        Compute the activation of the function on z.
+
+        Parameters:
+        z: dot(weights, inputs) + bias
+
+        Return:
+        The activation output.
+        """
         return self._apply(z)
 
     def prime(self, z: npt.ArrayLike) -> npt.ArrayLike:

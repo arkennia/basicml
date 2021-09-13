@@ -8,20 +8,6 @@ class Loss(ABC):
         super().__init__()
 
     @abstractmethod
-    def call(self, y_pred: npt.ArrayLike, y_true: npt.ArrayLike) -> npt.ArrayLike:
-        """
-        Output the loss or cost calculated using y_pred and y_true.
-
-        Parameters:
-        y_pred: The predicted output of a layer.
-        y_true: The True output it should have given.
-
-        Return:
-        The loss of this particular training example.
-        """
-        pass
-
-    @abstractmethod
     def _delta(self, z: npt.ArrayLike, y_pred: npt.ArrayLike,
                y_true: npt.ArrayLike, activation: Activation = None) -> npt.ArrayLike:
         """

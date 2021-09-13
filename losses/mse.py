@@ -5,7 +5,17 @@ from activations import Activation
 
 
 class MSE(Loss):
-    def call(self, y_pred, y_true):
+    def __call__(self, y_pred: npt.ArrayLike, y_true: npt.ArrayLike) -> npt.ArrayLike:
+        """
+        Output the loss or cost calculated using y_pred and y_true.
+
+        Parameters:
+        y_pred: The predicted output of a layer.
+        y_true: The True output it should have given.
+
+        Return:
+        The loss of this particular training example.
+        """
         return 0.5 * np.linalg.norm(y_pred - y_true)**2
 
     def _delta(self, z: npt.ArrayLike, y_pred: npt.ArrayLike,
