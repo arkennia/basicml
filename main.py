@@ -1,4 +1,3 @@
-from losses import loss
 import mnist_loader
 import numpy as np
 from model import Model

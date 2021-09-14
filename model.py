@@ -8,11 +8,22 @@ import layers
 
 class Model:
     def __init__(self):
+        """Initialize the model."""
         self._layers: list[layers.Layer] = []
         self.loss: losses.Loss = None
         self.optimizer: optimizers.Optimizer = None
 
     def build(self, loss: losses.Loss, optimizer: optimizers.Optimizer):
+        """
+        Build the model with the given loss and optimizer.
+
+        Parameters:
+        loss: The type of loss to use as defined in the `losses` module.
+        optimizer: The optimizer to use as defined in the `optimizers` module.
+
+        Errors:
+        ValueError: If any paramters are `None`.
+        """
         if loss is not None:
             self.loss = loss
         else:
@@ -21,9 +32,24 @@ class Model:
             self.optimizer = optimizer
         else:
             raise ValueError("Optimizer cannot be none.")
+        self._built = True
 
     def fit(self, X: npt.ArrayLike, y: npt.ArrayLike, epochs: int = 5,
-            batch_size: int = 32, val_data: npt.ArrayLike = None):
+            batch_size: int = 32, val_data: Tuple[npt.ArrayLike, npt.ArrayLike] = None):
+        """
+        Fit the model on the data.
+
+        Parameters:
+        X: The features to train on. Should be a numpy array.
+        y: The labels of the features. Should be a numpy array.
+        epochs: The number of epochs to run the model for.
+        batch_size: The batch_size to use. If the data does not go into `batch_size` equally,
+            the remainder will be dropped.
+        val_data: A tuple of (features, labels) containing the validation data.
+        """
+        if not self._built:
+            raise RuntimeError(
+                "You must build the model before fitting. See: model.fit")
         x_val, y_val = val_data
         n = len(X)
         self._prepare_variables(X[0])
@@ -35,12 +61,24 @@ class Model:
                     continue
                 train_loss = (self._train_network(
                     X[batch:batch + batch_size], y[batch:batch + batch_size]))
-            v_loss, val_acc = (self.evaluate(x_val, y_val))
+            v_loss, val_acc = self.evaluate(x_val, y_val)
             print(
                 f"Epoch {epoch+1}: Train Loss: {np.mean(train_loss)} Val Loss: {np.mean(v_loss)} \
                 Val_Acc: {val_acc}/{len(y_val)}")
 
     def predict(self, X) -> Union[int, float]:
+        """
+        Predict the label of X on the model.
+
+        Parameters:
+        X: A single training example.
+
+        Returns:
+        The output of the model on `X`.
+        """
+        if not self._built:
+            raise RuntimeError(
+                "You must build the model before fitting. See: model.fit")
         x = np.transpose(X)
 
         for layer in self._layers[1:]:
@@ -49,6 +87,19 @@ class Model:
         return x
 
     def evaluate(self, x_test, y_test) -> Tuple[float, int]:
+        """
+        Evaluate the model's performance on the given data.
+
+        Parameters:
+        x_test: The features to evaluate.
+        y_test: The labels to compare against.
+
+        Return:
+        (float, int): The loss on the data, and the number of correct outputs.
+        """
+        if not self._built:
+            raise RuntimeError(
+                "You must build the model before fitting. See: model.fit")
         # y_pred = np.stack([np.argmax(self.predict(x)) for x in x_test])
         y_pred = np.stack([self.predict(x) for x in x_test])
         # y_test = np.stack([np.argmax(y) for y in y_test])
@@ -124,9 +175,3 @@ class Model:
             self._weights.append(self._layers[i].get_weights())
             self._biases.append(self._layers[i].get_biases())
             prev_shape = self._layers[i].get_output_shape()
-
-
-def one_hot(data, categories, axis):
-    data_out = np.zeros(shape=(data.shape[axis], len(categories)))
-    data_out[np.arange(data.shape[axis]), data] = 1
-    return data_out
