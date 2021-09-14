@@ -1,12 +1,8 @@
-import activations
-from typing import Union
+from typing import Tuple, Union
 import numpy as np
-
 import numpy.typing as npt
 import optimizers
 import losses
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import load_digits
 import layers
 
 
@@ -29,19 +25,20 @@ class Model:
     def fit(self, X: npt.ArrayLike, y: npt.ArrayLike, epochs: int = 5,
             batch_size: int = 32, val_data: npt.ArrayLike = None):
         x_val, y_val = val_data
-        n = X.shape[0]
+        n = len(X)
         self._prepare_variables(X[0])
         for epoch in range(epochs):
-            val_loss = []
-            train_loss = []
+            train_loss = 0.0
+            val_acc = 0
             for batch in range(0, n, batch_size):
                 if n - batch < batch_size:
                     continue
-                train_loss.append(self._train_network(
+                train_loss = (self._train_network(
                     X[batch:batch + batch_size], y[batch:batch + batch_size]))
-                val_loss.append(self.evaluate(x_val, y_val))
+            v_loss, val_acc = (self.evaluate(x_val, y_val))
             print(
-                f"Epoch {epoch+1}: Train Loss: {np.mean(train_loss)} Val Loss: {np.mean(val_loss)}")
+                f"Epoch {epoch+1}: Train Loss: {np.mean(train_loss)} Val Loss: {np.mean(v_loss)} \
+                Val_Acc: {val_acc}/{len(y_val)}")
 
     def predict(self, X) -> Union[int, float]:
         x = np.transpose(X)
@@ -51,10 +48,16 @@ class Model:
 
         return x
 
-    def evaluate(self, x_test, y_test) -> float:
-        y_pred = [np.argmax(self.predict(x)) for x in x_test]
-        loss = np.sum(self.loss(y_pred, y_test))/len(y_test)
-        return loss
+    def evaluate(self, x_test, y_test) -> Tuple[float, int]:
+        # y_pred = np.stack([np.argmax(self.predict(x)) for x in x_test])
+        y_pred = np.stack([self.predict(x) for x in x_test])
+        # y_test = np.stack([np.argmax(y) for y in y_test])
+        loss = np.sum(self.loss(y_pred, y_test)) / len(y_test)
+        y = [(np.argmax(y_p), np.argmax(y_t))
+             for (y_p, y_t) in zip(y_pred, y_test)]
+        # y = list(zip(y_pred, y_test))
+        num_correct = sum([int(a == b) for a, b in y])
+        return loss, num_correct
 
     def add_layer(self, layer: layers.Layer):
         self._layers.append(layer)
@@ -63,13 +66,17 @@ class Model:
 
         gradient_w, gradient_b = self._backprop(x, y)
 
-        for (layer, gw, gb) in zip(self._layers[1:], gradient_w, gradient_b):
-            weights = self.optimizer.apply_gradients(gw, layer.get_weights())
-            biases = self.optimizer.apply_gradients(gb, layer.get_biases())
-            layer._set_weights(weights)
-            layer._set_biases(biases)
-
-        return self.evaluate(x, y)
+        for i, (gw, gb) in enumerate(zip(gradient_w, gradient_b)):
+            # Add 1 because the gradients don't include the input layer.
+            i += 1
+            weights = self.optimizer.apply_gradients(
+                gw, self._layers[i].get_weights())
+            biases = self.optimizer.apply_gradients(
+                gb, self._layers[i].get_biases())
+            self._layers[i]._set_weights(weights)
+            self._layers[i]._set_biases(biases)
+        loss, _ = self.evaluate(x, y)
+        return loss
 
     def _backprop(self, x, y):
         gradient_b = [np.zeros(len(b.get_biases()))
@@ -86,10 +93,9 @@ class Model:
             activation, layer_output = self._layers[i + 1](activation)
             layer_activations.append(activation)
             layer_outputs.append(layer_output)
-        activation_function = self._layers[-1].get_activation()
-
+        activation_function = None
         delta = self.loss._delta(layer_outputs[-1],
-                                 layer_activations[-1], y, activation_function)
+                                 np.transpose(layer_activations[-1]), y, activation_function)
 
         # Calculate gradients for final layer.
         # Delta is (10, 32). This reduces it to 10.
@@ -98,8 +104,10 @@ class Model:
 
         for i in range(2, len(self._layers)):
             activation_function = self._layers[-i].get_activation()
-            delta = np.matmul(self._layers[-i + 1].get_weights().transpose(),
-                              delta) * activation_function.prime(layer_outputs[-i])
+            a_prime = activation_function.prime(layer_outputs[-i])
+            weights = np.transpose(self._layers[-i + 1].get_weights())
+            delta = np.matmul(weights, delta)
+            delta = delta * a_prime
             gradient_b[-i] = np.sum(delta, axis=1)
             gradient_w[-i] = np.matmul(
                 delta, np.transpose(layer_activations[-i - 1]))
@@ -118,16 +126,7 @@ class Model:
             prev_shape = self._layers[i].get_output_shape()
 
 
-x, y = load_digits(return_X_y=True)
-
-x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.2, random_state=0, shuffle=True)
-
-model = Model()
-model.build(losses.CrossEntropy(), optimizers.SGD(1e-3 / 32))
-
-model.add_layer(layers.Input())
-model.add_layer(layers.Dense(128, activations.Sigmoid()))
-model.add_layer(layers.Dense(10, activations.Sigmoid()))
-
-model.fit(x_train, y_train, val_data=(x_test, y_test), epochs=10000)
+def one_hot(data, categories, axis):
+    data_out = np.zeros(shape=(data.shape[axis], len(categories)))
+    data_out[np.arange(data.shape[axis]), data] = 1
+    return data_out

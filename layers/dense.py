@@ -21,9 +21,12 @@ class Dense(Layer):
         """
         self.input_shape = input_shape
         self.output_shape = (self.units, input_shape[0])
-        self.weights = np.random.randn(
-            self.output_shape[0], self.output_shape[1])
-        self.biases = np.random.randn(self.units)
+        # self.weights = np.random.randn(
+        #     self.output_shape[0], self.output_shape[1])
+        # self.biases = np.random.randn(self.units)
+        self.weights = np.random.default_rng(0).random(
+            (self.output_shape[0], self.output_shape[1])) / np.sqrt(self.output_shape[1])
+        self.biases = np.random.default_rng(0).random(self.units)
         self.__built = True
 
     def __call__(self, inputs) -> Tuple[npt.ArrayLike, npt.ArrayLike]:
@@ -42,13 +45,13 @@ class Dense(Layer):
         if not self.__built:
             self.build(inputs.shape)
         # a = np.dot(self.weights, inputs) + self.biases
+        a = np.matmul(self.weights, inputs)
+        b = self.biases
+        if a.ndim > 1:
+            b = np.repeat(b[:, np.newaxis], a.shape[-1], axis=1)
+        a = np.add(a, b)
+        z = a  # pre-activation function output
         if self.activation is not None:
-            a = np.matmul(self.weights, inputs)
-            b = self.biases
-            if a.ndim > 1:
-                b = np.repeat(b[:, np.newaxis], a.shape[-1], axis=1)
-            a = np.add(a, b)
-            z = a  # pre-activation function output
             a = self.activation(a)
         return a, z
 

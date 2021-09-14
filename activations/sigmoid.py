@@ -20,4 +20,5 @@ class Sigmoid(Activation):
         return self._apply(z) * (1 - self._apply(z))
 
     def _apply(self, z: npt.ArrayLike) -> npt.ArrayLike:
-        return 1.0 / (1.0 + np.exp(-z))
+        exp = np.exp(-z)
+        return 1.0 / (1.0 + exp)
