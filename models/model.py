@@ -21,7 +21,7 @@ class Model:
         loss: The type of loss to use as defined in the `losses` module.
         optimizer: The optimizer to use as defined in the `optimizers` module.
 
-        Errors:
+        Raises:
         ValueError: If any paramters are `None`.
         """
         if loss is not None:
@@ -46,6 +46,9 @@ class Model:
         batch_size: The batch_size to use. If the data does not go into `batch_size` equally,
             the remainder will be dropped.
         val_data: A tuple of (features, labels) containing the validation data.
+
+        Raises:
+        RuntimeError: If the function is called before `model.build`.
         """
         if not self._built:
             raise RuntimeError(
@@ -75,6 +78,9 @@ class Model:
 
         Returns:
         The output of the model on `X`.
+
+        Raises:
+        RuntimeError: If the function is called before `model.build`.
         """
         if not self._built:
             raise RuntimeError(
@@ -96,6 +102,9 @@ class Model:
 
         Return:
         (float, int): The loss on the data, and the number of correct outputs.
+
+        Raises:
+        RuntimeError: If the function is called before `model.build`.
         """
         if not self._built:
             raise RuntimeError(
@@ -111,10 +120,24 @@ class Model:
         return loss, num_correct
 
     def add_layer(self, layer: layers.Layer):
+        """
+        Add the given layer to the model's list of layers.
+
+        Parameters:
+        layer: The layer to add.
+
+        Raises:
+        ValueError: Layer is none.
+        """
+        if layer is None:
+            raise ValueError("Layer cannot be none.")
         self._layers.append(layer)
 
     def _train_network(self, x: np.ndarray, y: np.ndarray) -> float:
-
+        """
+        Get the gradients by backpropagation and apply them to the weights of each layer.
+        Returns the loss after applying gradients.
+        """
         gradient_w, gradient_b = self._backprop(x, y)
 
         for i, (gw, gb) in enumerate(zip(gradient_w, gradient_b)):
@@ -129,7 +152,14 @@ class Model:
         loss, _ = self.evaluate(x, y)
         return loss
 
-    def _backprop(self, x, y):
+    def _backprop(self, x, y) -> Tuple[npt.ArrayLike, npt.ArrayLike]:
+        """
+        Implements the backpropgation on a matrix consisting of `batch_size` training examples.
+        The code implemented here is based on the book located
+        [here](http://neuralnetworksanddeeplearning.com/index.html).
+        """
+
+        # Intialize the gradients.
         gradient_b = [np.zeros(len(b.get_biases()))
                       for b in self._layers[1:]]
         gradient_w = [np.zeros(w.get_weights().shape)
@@ -137,24 +167,33 @@ class Model:
 
         layer_activations = []
         layer_outputs = []
+
+        # The input is given as (batch_size, training_dims)
+        # However we need each trainign example as a column vector,
+        # so we transpose it.
         activation = np.transpose(x)
         layer_activations.append(activation)
 
         for i, (b, w) in enumerate(zip(self._biases, self._weights)):
+            # activation is the output of the layer with the activation applied.
+            # layer_output is the output without the activation. Commonly refered to as `z`.
             activation, layer_output = self._layers[i + 1](activation)
             layer_activations.append(activation)
             layer_outputs.append(layer_output)
-        activation_function = None
+        activation_function = self._layers[-1].get_activation()
+
+        # The delta requires the activation for properly calulating the delta, or change.
         delta = self.loss._delta(layer_outputs[-1],
                                  np.transpose(layer_activations[-1]), y, activation_function)
 
         # Calculate gradients for final layer.
-        # Delta is (10, 32). This reduces it to 10.
         gradient_b[-1] = np.sum(delta, axis=1)
         gradient_w[-1] = np.matmul(delta, np.transpose(layer_activations[-2]))
 
         for i in range(2, len(self._layers)):
             activation_function = self._layers[-i].get_activation()
+
+            # The first derivative of the activation function applied to the outputs.
             a_prime = activation_function.prime(layer_outputs[-i])
             weights = np.transpose(self._layers[-i + 1].get_weights())
             delta = np.matmul(weights, delta)
@@ -166,6 +205,7 @@ class Model:
         return gradient_w, gradient_b
 
     def _prepare_variables(self, x: npt.ArrayLike):
+        """Build all layers and initalize the weights and biases."""
         self._weights = []
         self._biases = []
         prev_shape = x.shape

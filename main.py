@@ -1,6 +1,6 @@
 import mnist_loader
 import numpy as np
-from model import Model
+from models import Model
 import optimizers
 import layers
 import activations
