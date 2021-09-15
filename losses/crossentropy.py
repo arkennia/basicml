@@ -1,3 +1,5 @@
+"""CrossEntropy loss implementation."""
+
 from losses.loss import Loss
 import numpy as np
 import numpy.typing as npt
@@ -5,10 +7,19 @@ from activations import Activation
 
 
 class CrossEntropy(Loss):
+    """Implements loss for cross entropy with and without a softmax."""
+
     # We could create this such that it will apply softmax to the output. This is the equivalent of setting
     # from_logits=True in tensorflow. Basically we're saying in the case of logits, they aren't a probability
     # distribution.
+
     def __init__(self, apply_softmax=False):
+        """
+        Init the class.
+
+        Parameters:
+        apply_softmax: Whether the loss function should first apply Softmax to the inputs.
+        """
         self.apply_softmax = apply_softmax
 
     def __call__(self, y_pred: npt.ArrayLike, y_true: npt.ArrayLike) -> npt.ArrayLike:
@@ -35,4 +46,5 @@ class CrossEntropy(Loss):
 
     def _delta(self, z: npt.ArrayLike, y_pred: npt.ArrayLike,
                y_true: npt.ArrayLike, activation: Activation = None) -> npt.ArrayLike:
+        """Find the derivative of the loss function with respect to y_true and y_pred."""
         return np.transpose(y_pred - y_true)

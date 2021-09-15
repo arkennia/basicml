@@ -1,3 +1,5 @@
+"""Contains a model class that implements a sequential type model."""
+
 from typing import Tuple, Union
 import numpy as np
 import numpy.typing as npt
@@ -7,6 +9,8 @@ import layers
 
 
 class Model:
+    """A sequential type model for machine learning."""
+
     def __init__(self):
         """Initialize the model."""
         self._layers: list[layers.Layer] = []
@@ -136,7 +140,9 @@ class Model:
     def _train_network(self, x: np.ndarray, y: np.ndarray) -> float:
         """
         Get the gradients by backpropagation and apply them to the weights of each layer.
-        Returns the loss after applying gradients.
+
+        Returns:
+        The loss after applying gradients.
         """
         gradient_w, gradient_b = self._backprop(x, y)
 
@@ -154,11 +160,11 @@ class Model:
 
     def _backprop(self, x, y) -> Tuple[npt.ArrayLike, npt.ArrayLike]:
         """
-        Implements the backpropgation on a matrix consisting of `batch_size` training examples.
+        Implement the backpropgation on a matrix consisting of `batch_size` training examples.
+
         The code implemented here is based on the book located
         [here](http://neuralnetworksanddeeplearning.com/index.html).
         """
-
         # Intialize the gradients.
         gradient_b = [np.zeros(len(b.get_biases()))
                       for b in self._layers[1:]]

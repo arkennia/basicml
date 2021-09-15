@@ -1,3 +1,5 @@
+"""Densely connected layer."""
+
 from typing import Tuple, Union
 import activations
 from layers import Layer
@@ -7,7 +9,17 @@ import numpy as np
 
 
 class Dense(Layer):
-    def __init__(self, units: int, activation: Activation = None, trainable: bool = True) -> None:
+    """Implements a Densely connected neural network layer. Derives from `Layer`."""
+
+    def __init__(self, units: int, activation: Activation = None, trainable: bool = True):
+        """
+        Init a Dense layer.
+
+        Parameters:
+            units: The number of neurons for the layer.
+            activation: The activation function to use.
+            trainable: Whether or not it should update weights.
+        """
         super().__init__(trainable=trainable)
         self.units = units
         self.activation = activation
@@ -56,16 +68,19 @@ class Dense(Layer):
         return a, z
 
     def get_biases(self) -> npt.ArrayLike:
+        """Return a copy of the biases of the layer."""
         return self.biases
 
     def get_weights(self) -> npt.ArrayLike:
+        """Return a copy of the biases of the layer."""
         return self.weights
 
     def get_output_shape(self) -> Tuple:
-        """Get the output shape of the layer."""
+        """Return the output shape of the layer."""
         return self.output_shape
 
     def get_activation(self) -> Union[activations.Activation, None]:
+        """Return a copy of the layer's activation function."""
         return self.activation
 
     def _set_weights(self, weights: npt.ArrayLike):

@@ -1,3 +1,4 @@
+"""Simple example showcasing how to use the package."""
 import mnist_loader
 import numpy as np
 from models import Model
