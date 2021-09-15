@@ -70,8 +70,8 @@ class Model:
                     X[batch:batch + batch_size], y[batch:batch + batch_size]))
             v_loss, val_acc = self.evaluate(x_val, y_val)
             print(
-                f"Epoch {epoch+1}: Train Loss: {np.mean(train_loss)} Val Loss: {np.mean(v_loss)} \
-                Val_Acc: {val_acc}/{len(y_val)}")
+                f"Epoch {epoch+1}:\tTrain Loss: {train_loss:.2f}\tVal Loss: {v_loss:.2f}\t\
+                Val_Acc: {(val_acc/len(y_val)) * 100}%")
 
     def predict(self, X) -> Union[int, float]:
         """

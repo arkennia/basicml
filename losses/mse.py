@@ -29,4 +29,4 @@ class MSE(Loss):
             z = activation.prime(z)
         else:
             z = 1.0
-        return (y_pred - y_true) * z
+        return np.transpose((y_pred - y_true) * np.transpose(z))

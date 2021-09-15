@@ -19,6 +19,6 @@ model.build(losses.CrossEntropy(apply_softmax=True), optimizers.SGD(1e-3))
 
 model.add_layer(layers.Input())
 model.add_layer(layers.Dense(30, activations.Sigmoid()))
-model.add_layer(layers.Dense(10, activations.Sigmoid()))
+model.add_layer(layers.Dense(10))
 
 model.fit(x_train, y_train, val_data=(x_test, y_test), epochs=10000)
