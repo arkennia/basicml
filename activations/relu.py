@@ -2,6 +2,7 @@
 
 from activations import Activation
 import numpy.typing as npt
+import numpy as np
 
 
 class ReLU(Activation):
@@ -17,7 +18,7 @@ class ReLU(Activation):
         Return:
         The activation output.
         """
-        return self.apply(z)
+        return self._apply(z)
 
     def prime(self, z: npt.ArrayLike) -> npt.ArrayLike:
         """
@@ -29,11 +30,8 @@ class ReLU(Activation):
         Return:
         The output of the derivative of ReLU.
         """
-        if z < 0:
-            return 0
-        else:
-            return 1
+        return np.vectorize(lambda x: 1 if x > 0 else 0)(z)
 
     def _apply(self, z: npt.ArrayLike) -> npt.ArrayLike:
         """Compute ReLU on z."""
-        return max(0, z)
+        return np.vectorize(lambda x: max(0, x))(z)

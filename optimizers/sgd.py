@@ -24,6 +24,6 @@ class SGD(Optimizer):
         Returns:
             The modified variables.
         """
-        variables = [w - (self.lr) * gw
+        variables = [w - ((self.lr/32) * gw)
                      for w, gw in zip(variables, gradients)]
         return np.array(variables)

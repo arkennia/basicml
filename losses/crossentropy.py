@@ -39,9 +39,10 @@ class CrossEntropy(Loss):
             exp_sums = np.repeat(
                 exp_sums[:, np.newaxis], exps.shape[-1], axis=1)
             y_pred = exps / exp_sums
-        losses = np.nan_to_num(-y_true * np.log(y_pred)
-                               - (1 - y_true) * np.log(1 - y_pred))
-        losses = np.sum(losses)
+        # losses = np.nan_to_num(-y_true * np.log(y_pred)
+        #                        - (1 - y_true) * np.log(1 - y_pred))
+        losses = y_true * -np.log(y_pred)
+        losses = np.sum(losses, axis=-1, keepdims=False)
         return losses
 
     def _delta(self, z: npt.ArrayLike, y_pred: npt.ArrayLike,

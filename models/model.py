@@ -71,7 +71,7 @@ class Model:
             v_loss, val_acc = self.evaluate(x_val, y_val)
             print(
                 f"Epoch {epoch+1}:\tTrain Loss: {train_loss:.2f}\tVal Loss: {v_loss:.2f}\t\
-                Val_Acc: {(val_acc/len(y_val)) * 100}%")
+                Val_Acc: {(val_acc/len(y_val)) * 100:.1f}%")
 
     def predict(self, X) -> Union[int, float]:
         """
@@ -159,6 +159,7 @@ class Model:
         return loss
 
     def _backprop(self, x, y) -> Tuple[npt.ArrayLike, npt.ArrayLike]:
+        # TODO: Optimize this function.
         """
         Implement the backpropgation on a matrix consisting of `batch_size` training examples.
 
@@ -177,24 +178,25 @@ class Model:
         # The input is given as (batch_size, training_dims)
         # However we need each trainign example as a column vector,
         # so we transpose it.
-        activation = np.transpose(x)
+        activation = x
         layer_activations.append(activation)
+        activation = np.transpose(x)
 
-        for i, (b, w) in enumerate(zip(self._biases, self._weights)):
+        for i in range(len(self._layers) - 1):
             # activation is the output of the layer with the activation applied.
             # layer_output is the output without the activation. Commonly refered to as `z`.
             activation, layer_output = self._layers[i + 1](activation)
-            layer_activations.append(activation)
+            layer_activations.append(np.transpose(activation))
             layer_outputs.append(layer_output)
         activation_function = self._layers[-1].get_activation()
 
         # The delta requires the activation for properly calulating the delta, or change.
         delta = self.loss._delta(layer_outputs[-1],
-                                 np.transpose(layer_activations[-1]), y, activation_function)
+                                 layer_activations[-1], y, activation_function)
 
         # Calculate gradients for final layer.
         gradient_b[-1] = np.sum(delta, axis=1)
-        gradient_w[-1] = np.matmul(delta, np.transpose(layer_activations[-2]))
+        gradient_w[-1] = np.matmul(delta, layer_activations[-2])
 
         for i in range(2, len(self._layers)):
             activation_function = self._layers[-i].get_activation()
@@ -206,18 +208,14 @@ class Model:
             delta = delta * a_prime
             gradient_b[-i] = np.sum(delta, axis=1)
             gradient_w[-i] = np.matmul(
-                delta, np.transpose(layer_activations[-i - 1]))
+                delta, layer_activations[-i - 1])
 
         return gradient_w, gradient_b
 
     def _prepare_variables(self, x: npt.ArrayLike):
         """Build all layers and initalize the weights and biases."""
-        self._weights = []
-        self._biases = []
         prev_shape = x.shape
 
         for i in range(1, len(self._layers)):
             self._layers[i].build(prev_shape)
-            self._weights.append(self._layers[i].get_weights())
-            self._biases.append(self._layers[i].get_biases())
             prev_shape = self._layers[i].get_output_shape()
