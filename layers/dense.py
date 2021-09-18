@@ -38,7 +38,7 @@ class Dense(Layer):
         # self.biases = np.random.randn(self.units)
         self.weights = np.random.default_rng(0).random(
             (self.output_shape[0], self.output_shape[1])) / np.sqrt(self.output_shape[1])
-        self.biases = np.random.default_rng(0).random(self.units)
+        self.biases = np.zeros(self.units)
         self.__built = True
 
     def __call__(self, inputs) -> Tuple[npt.ArrayLike, npt.ArrayLike]:

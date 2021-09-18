@@ -13,17 +13,18 @@ class SGD(Optimizer):
         """Init the class and learning rate."""
         super().__init__(learning_rate)
 
-    def apply_gradients(self, gradients: npt.ArrayLike, variables: npt.ArrayLike) -> npt.ArrayLike:
+    def apply_gradients(self, gradients: npt.ArrayLike, variables: npt.ArrayLike, batch_size: int) -> npt.ArrayLike:
         """
         Apply the gradients to the variables of the model.
 
         Parameters:
             gradients: The gradients to adjust with.
             variables: The model's variables (weights and biases).
+            batch_size: The size of each batch.
 
         Returns:
             The modified variables.
         """
-        variables = [w - ((self.lr/32) * gw)
+        variables = [w - ((self.lr / batch_size) * gw)
                      for w, gw in zip(variables, gradients)]
         return np.array(variables)

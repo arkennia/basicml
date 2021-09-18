@@ -150,9 +150,9 @@ class Model:
             # Add 1 because the gradients don't include the input layer.
             i += 1
             weights = self.optimizer.apply_gradients(
-                gw, self._layers[i].get_weights())
+                gw, self._layers[i].get_weights(), x.shape[0])
             biases = self.optimizer.apply_gradients(
-                gb, self._layers[i].get_biases())
+                gb, self._layers[i].get_biases(), x.shape[0])
             self._layers[i]._set_weights(weights)
             self._layers[i]._set_biases(biases)
         loss, _ = self.evaluate(x, y)

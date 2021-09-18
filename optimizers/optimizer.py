@@ -18,13 +18,14 @@ class Optimizer(ABC):
         self.lr = learning_rate
 
     @abstractmethod
-    def apply_gradients(self, gradients: npt.ArrayLike, variables: npt.ArrayLike) -> npt.ArrayLike:
+    def apply_gradients(self, gradients: npt.ArrayLike, variables: npt.ArrayLike, batch_size: int) -> npt.ArrayLike:
         """
         Apply the gradients to the variables of the model.
 
         Parameters:
             gradients: The gradients to adjust with.
             variables: The model's variables (weights and biases).
+            batch_size: The size of each batch.
 
         Returns:
             The modified variables.
